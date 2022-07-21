@@ -11,5 +11,10 @@
     "typescript": "^4.7.4",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3"
+  },
+  "dependencies": {
+    "babylonjs": "^5.16.0",
+    "babylonjs-gui": "^5.16.0",
+    "babylonjs-loaders": "^5.16.0"
   }
 }

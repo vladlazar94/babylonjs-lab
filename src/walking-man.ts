@@ -1,8 +1,20 @@
-import { ArcRotateCamera, Scene, SceneLoader, Vector3 } from "babylonjs";
+import {
+  AbstractMesh,
+  AnimationGroup,
+  ArcRotateCamera,
+  Scene,
+  SceneLoader,
+  Vector3,
+} from "babylonjs";
 
 export async function createWalkingMan(scene: Scene, camera: ArcRotateCamera) {
-  const { man } = await importMan(scene);
+  const { man, walk } = await importMan(scene);
 
+  enableWalking(man, camera);
+  enableWalkingAnimation(walk);
+}
+
+function enableWalking(man: AbstractMesh, camera: ArcRotateCamera) {
   window.addEventListener("keydown", keydown);
 
   function keydown(e: KeyboardEvent) {
@@ -30,6 +42,46 @@ export async function createWalkingMan(scene: Scene, camera: ArcRotateCamera) {
       window.addEventListener("keydown", keydown);
 
       clearInterval(interval);
+    }
+  }
+}
+
+function enableWalkingAnimation(walk: AnimationGroup) {
+  let animationWeight = 0;
+  let increaseInterval: NodeJS.Timer | undefined = undefined;
+  let decreaseInterval: NodeJS.Timer | undefined = undefined;
+
+  window.addEventListener("keydown", keydown);
+
+  function keydown(e: KeyboardEvent) {
+    if (e.key !== "w") return;
+    window.removeEventListener("keydown", keydown);
+    window.addEventListener("keyup", keyup);
+
+    if (decreaseInterval !== undefined) clearInterval(decreaseInterval);
+
+    walk.start(true);
+    walk.setWeightForAllAnimatables(animationWeight);
+    walk.speedRatio = 1.5;
+
+    increaseInterval = setInterval(() => {
+      animationWeight += 0.1;
+      if (animationWeight >= 1) clearInterval(increaseInterval);
+      walk.setWeightForAllAnimatables(animationWeight);
+    }, SecondDividedBySixtyInMs);
+
+    function keyup(e: KeyboardEvent) {
+      if (e.key !== "w") return;
+      window.removeEventListener("keyup", keyup);
+      window.addEventListener("keydown", keydown);
+
+      if (increaseInterval !== undefined) clearInterval(increaseInterval);
+
+      decreaseInterval = setInterval(() => {
+        animationWeight -= 0.1;
+        if (animationWeight <= 0) clearInterval(decreaseInterval);
+        walk.setWeightForAllAnimatables(animationWeight);
+      }, SecondDividedBySixtyInMs);
     }
   }
 }

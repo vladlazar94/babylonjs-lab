@@ -35,6 +35,9 @@ function setupCamera(canvas: HTMLCanvasElement, scene: Scene) {
     scene
   );
   camera.attachControl(canvas, true);
+
+  camera.lowerBetaLimit = Math.PI / 6;
+  camera.upperBetaLimit = Math.PI / 2.3;
   return camera;
 }
 

@@ -4,8 +4,8 @@ const path = require("path");
 
 module.exports = {
   name: "Main app",
-  mode: "development",
   target: "web",
+  mode: "development",
   entry: "./src/index.ts",
   devServer: {
     static: {

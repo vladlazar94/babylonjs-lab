@@ -4,18 +4,21 @@ import {
   HemisphericLight,
   MeshBuilder,
   Scene,
-  SceneLoader,
   Vector3,
 } from "babylonjs";
 import "babylonjs-loaders";
+import { createWalkingMan } from "./walking-man";
 
 async function main() {
   const canvas = document.getElementById("RenderCanvas")! as HTMLCanvasElement;
   const { engine, scene } = setupScene(canvas);
   const {} = setupEnvironment(scene);
-  setupCamera(canvas, scene);
+  const camera = setupCamera(canvas, scene);
 
-  await importMan(scene);
+  await createWalkingMan(scene, camera);
+
+  const sphere = MeshBuilder.CreateSphere("Sphere", {}, scene);
+  sphere.position = new Vector3(5, 0.5, 0);
 
   engine.runRenderLoop(() => scene.render());
 }
@@ -32,23 +35,7 @@ function setupCamera(canvas: HTMLCanvasElement, scene: Scene) {
     scene
   );
   camera.attachControl(canvas, true);
-}
-
-async function importMan(scene: Scene) {
-  const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
-    "",
-    "/assets/walk_cycle/",
-    "scene.gltf",
-    scene
-  );
-
-  const man = meshes[0]!;
-  const walk = animationGroups[0]!;
-
-  man.scaling = new Vector3(0.01, 0.01, 0.01);
-  walk.stop();
-
-  return { man, walk };
+  return camera;
 }
 
 function setupEnvironment(scene: Scene) {

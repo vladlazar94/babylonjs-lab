@@ -2,19 +2,20 @@ import {
   AbstractMesh,
   AnimationGroup,
   ArcRotateCamera,
+  MeshBuilder,
   Scene,
   SceneLoader,
   Vector3,
 } from "babylonjs";
 
 export async function createWalkingMan(scene: Scene, camera: ArcRotateCamera) {
-  const { man, walk } = await importMan(scene);
+  const { character, idle, run } = await importMan(scene);
 
-  enableWalking(man, camera);
-  enableWalkingAnimation(walk);
+  enableMoving(character, camera);
+  enableMovingAnimation(idle, run);
 }
 
-function enableWalking(man: AbstractMesh, camera: ArcRotateCamera) {
+function enableMoving(man: AbstractMesh, camera: ArcRotateCamera) {
   window.addEventListener("keydown", keydown);
 
   function keydown(e: KeyboardEvent) {
@@ -46,10 +47,11 @@ function enableWalking(man: AbstractMesh, camera: ArcRotateCamera) {
   }
 }
 
-function enableWalkingAnimation(walk: AnimationGroup) {
-  let animationWeight = 0;
-  let increaseInterval: NodeJS.Timer | undefined = undefined;
-  let decreaseInterval: NodeJS.Timer | undefined = undefined;
+function enableMovingAnimation(idle: AnimationGroup, move: AnimationGroup) {
+  let idleWeight = 1;
+  let moveWeight = 0;
+  let blendIn: NodeJS.Timer | undefined = undefined;
+  let blendOut: NodeJS.Timer | undefined = undefined;
 
   window.addEventListener("keydown", keydown);
 
@@ -58,16 +60,18 @@ function enableWalkingAnimation(walk: AnimationGroup) {
     window.removeEventListener("keydown", keydown);
     window.addEventListener("keyup", keyup);
 
-    if (decreaseInterval !== undefined) clearInterval(decreaseInterval);
+    if (blendOut !== undefined) clearInterval(blendOut);
 
-    walk.start(true);
-    walk.setWeightForAllAnimatables(animationWeight);
-    walk.speedRatio = 1.5;
+    move.start(true);
+    move.setWeightForAllAnimatables(moveWeight);
+    move.speedRatio = 1.5;
 
-    increaseInterval = setInterval(() => {
-      animationWeight += 0.1;
-      if (animationWeight >= 1) clearInterval(increaseInterval);
-      walk.setWeightForAllAnimatables(animationWeight);
+    blendIn = setInterval(() => {
+      moveWeight += AnimationBlendingStep;
+      idleWeight -= AnimationBlendingStep;
+      if (moveWeight >= 1) clearInterval(blendIn);
+      move.setWeightForAllAnimatables(moveWeight);
+      idle.setWeightForAllAnimatables(idleWeight);
     }, SecondDividedBySixtyInMs);
 
     function keyup(e: KeyboardEvent) {
@@ -75,12 +79,17 @@ function enableWalkingAnimation(walk: AnimationGroup) {
       window.removeEventListener("keyup", keyup);
       window.addEventListener("keydown", keydown);
 
-      if (increaseInterval !== undefined) clearInterval(increaseInterval);
+      if (blendIn !== undefined) clearInterval(blendIn);
 
-      decreaseInterval = setInterval(() => {
-        animationWeight -= 0.1;
-        if (animationWeight <= 0) clearInterval(decreaseInterval);
-        walk.setWeightForAllAnimatables(animationWeight);
+      idle.start(true);
+      idle.setWeightForAllAnimatables(idleWeight);
+
+      blendOut = setInterval(() => {
+        moveWeight -= AnimationBlendingStep;
+        idleWeight += AnimationBlendingStep;
+        if (moveWeight <= 0) clearInterval(blendOut);
+        move.setWeightForAllAnimatables(moveWeight);
+        idle.setWeightForAllAnimatables(idleWeight);
       }, SecondDividedBySixtyInMs);
     }
   }
@@ -89,18 +98,27 @@ function enableWalkingAnimation(walk: AnimationGroup) {
 async function importMan(scene: Scene) {
   const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
     "",
-    "assets/walk_cycle/",
+    "assets/comix_cat/",
     "scene.gltf",
     scene
   );
 
-  const man = meshes[0]!;
+  const character = meshes[0]!;
+  const idle = animationGroups[2]!;
   const walk = animationGroups[0]!;
+  const run = animationGroups[1]!;
 
-  man.scaling = new Vector3(0.01, 0.01, 0.01);
+  character.scaling = new Vector3(1, 1, 1);
+  character.position.y = 0.1;
+
+  const sphere = MeshBuilder.CreateSphere("Sphere", {}, scene);
+  sphere.position = new Vector3(5, 0.5, 0);
+
   walk.stop();
+  idle.start();
 
-  return { man, walk };
+  return { character, walk, run, idle };
 }
 
+const AnimationBlendingStep = 0.2;
 const SecondDividedBySixtyInMs = 1000 / 60;

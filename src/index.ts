@@ -17,9 +17,6 @@ async function main() {
 
   await createWalkingMan(scene, camera);
 
-  const sphere = MeshBuilder.CreateSphere("Sphere", {}, scene);
-  sphere.position = new Vector3(5, 0.5, 0);
-
   engine.runRenderLoop(() => scene.render());
 }
 

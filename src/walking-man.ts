@@ -2,7 +2,6 @@ import {
   AbstractMesh,
   AnimationGroup,
   ArcRotateCamera,
-  MeshBuilder,
   Scene,
   SceneLoader,
   Vector3,
@@ -110,9 +109,6 @@ async function importMan(scene: Scene) {
 
   character.scaling = new Vector3(1, 1, 1);
   character.position.y = 0.1;
-
-  const sphere = MeshBuilder.CreateSphere("Sphere", {}, scene);
-  sphere.position = new Vector3(5, 0.5, 0);
 
   walk.stop();
   idle.start();

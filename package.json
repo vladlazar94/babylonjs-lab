@@ -16,6 +16,7 @@
   "dependencies": {
     "babylonjs": "^5.16.0",
     "babylonjs-gui": "^5.16.0",
-    "babylonjs-loaders": "^5.16.0"
+    "babylonjs-loaders": "^5.16.0",
+    "cannon": "^0.6.2"
   }
 }

@@ -8,6 +8,9 @@ import {
   StandardMaterial,
   Texture,
   Vector3,
+  CannonJSPlugin,
+  PhysicsImpostor,
+  Color3,
 } from "babylonjs";
 import "babylonjs-loaders";
 import { createWalkingMan } from "./walking-man";
@@ -17,6 +20,7 @@ async function main() {
   const { engine, scene } = setupScene(canvas);
   const {} = setupEnvironment(scene);
   const camera = setupCamera(canvas, scene);
+  setupPhysics(scene);
   createSkyBox(scene);
   createShapes(scene);
 
@@ -79,7 +83,16 @@ function createSkyBox(scene: Scene) {
 
 function createShapes(scene: Scene) {
   const sphere = MeshBuilder.CreateSphere("Sphere", {}, scene);
-  sphere.position = new Vector3(5, 0.5, 0);
+  sphere.position = new Vector3(5, 5, 0);
+
+  const sphereImpostor = new PhysicsImpostor(
+    sphere,
+    PhysicsImpostor.SphereImpostor,
+    { mass: 1, friction: 20 },
+    scene
+  );
+
+  sphere.physicsImpostor = sphereImpostor;
 
   const cube = MeshBuilder.CreateBox("Box", { width: 1, height: 1 }, scene);
   cube.position = new Vector3(-5, 0.5, 0);
@@ -89,4 +102,31 @@ function createShapes(scene: Scene) {
 
   const knot = MeshBuilder.CreateTorusKnot("Tor", {}, scene);
   knot.position = new Vector3(0, 0, -5);
+
+  const groundMat = new StandardMaterial("GroundMat", scene);
+  groundMat.diffuseColor = Color3.Yellow();
+  const ground = MeshBuilder.CreateGround(
+    "Ground",
+    { width: 100, height: 100 },
+    scene
+  );
+
+  ground.material = groundMat;
+  const groundImpostor = new PhysicsImpostor(
+    ground,
+    PhysicsImpostor.PlaneImpostor,
+    { mass: 0, restitution: 0.1 },
+    scene
+  );
+
+  ground.physicsImpostor = groundImpostor;
+}
+
+function setupPhysics(scene: Scene) {
+  const plugin = new CannonJSPlugin();
+  const gravityVec = new Vector3(0, -9.8, 0);
+
+  const b = scene.enablePhysics(gravityVec, plugin);
+
+  console.log(b);
 }
